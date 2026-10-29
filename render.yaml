@@ -1,0 +1,14 @@
+# Render Blueprint (Static Site) — repository root contains package.json and index.html.
+services:
+  - type: web
+    name: vision-sentinel-camera
+    runtime: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin

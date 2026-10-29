@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1113">
+  <meta name="description" content="Vision Sentinel — on-device camera face and motion tracking, for phone and PC.">
+  <title>VISION SENTINEL // Camera Tracking</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script defer type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="identity">
+        <span class="logo" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <div><div class="brand">VISION <b>SENTINEL</b></div><div class="brand-sub">CAMERA ANALYSIS TERMINAL <span class="revision">/ VS-01</span></div></div>
+      </div>
+      <div class="top-meta"><span class="privacy-chip"><span class="pulse-dot"></span> ON-DEVICE ANALYSIS</span><span class="terminal-time" id="clock">--:--:-- UTC</span></div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel settings-panel">
+        <div class="section-bar"><span>01 / INPUT CONTROL</span><span class="tiny-cross">+</span></div>
+        <div class="settings-body">
+          <div class="field-label">CAMERA SOURCE <span id="cameraName">NOT CONNECTED</span></div>
+          <div class="camera-controls">
+            <button class="button primary" id="startBtn" type="button">START CAMERA</button>
+            <button class="button" id="flipBtn" type="button" disabled>FLIP</button>
+          </div>
+          <button class="button secondary full" id="stopBtn" type="button" disabled>DISCONNECT CAMERA</button>
+          <div class="side-divider"></div>
+          <div class="section-heading">DETECTION MODULES <span>02</span></div>
+          <label class="switch-row" for="facesToggle"><span><strong>FACE DETECTION</strong><small>Boxes + temporary track IDs</small></span><span class="switch"><input type="checkbox" id="facesToggle" checked><span class="switch-ui"></span></span></label>
+          <label class="switch-row" for="motionToggle"><span><strong>MOTION TRACKING</strong><small>Moving regions, not identity</small></span><span class="switch"><input type="checkbox" id="motionToggle" checked><span class="switch-ui"></span></span></label>
+          <label class="switch-row" for="trailsToggle"><span><strong>MOTION TRAILS</strong><small>Recent paths of detections</small></span><span class="switch"><input type="checkbox" id="trailsToggle" checked><span class="switch-ui"></span></span></label>
+          <label class="switch-row" for="keypointsToggle"><span><strong>FACE KEYPOINTS</strong><small>Show detected facial points</small></span><span class="switch"><input type="checkbox" id="keypointsToggle" checked><span class="switch-ui"></span></span></label>
+          <label class="switch-row" for="mirrorToggle"><span><strong>MIRROR PREVIEW</strong><small>Useful with front camera</small></span><span class="switch"><input type="checkbox" id="mirrorToggle"><span class="switch-ui"></span></span></label>
+          <div class="side-divider"></div>
+          <div class="slider-title"><label for="sensitivity">MOTION SENSITIVITY</label><span id="sensitivityValue">60%</span></div>
+          <input id="sensitivity" class="slider" type="range" min="10" max="100" value="60" step="1">
+          <div class="range-labels"><span>LOW</span><span>HIGH</span></div>
+          <div class="side-divider"></div>
+          <div class="section-heading">MODEL STATUS</div>
+          <div class="model-status" id="modelStatus"><span class="status-mini loading"></span><span>Awaiting camera</span></div>
+          <button class="button full model-retry" type="button" id="retryModel" hidden>RETRY FACE MODEL</button>
+          <p class="small-note">Face AI loads from the internet. No live video is sent to this website's server. MediaPipe may collect usage metrics.</p>
+        </div>
+        <div class="sidebar-foot">VS / LOCAL-ONLY SESSION <span>v1.0</span></div>
+      </aside>
+
+      <main class="main-panel">
+        <div class="main-heading"><div><span class="live-indicator" id="liveIndicator"></span><strong>LIVE CAMERA FEED</strong><span class="feed-separator">/</span><span id="feedLabel">NO SIGNAL</span></div><span class="right-head" id="faceEngineHead">AI / STANDBY</span></div>
+        <section class="viewer" id="viewer" aria-label="Live camera with tracking annotations">
+          <div class="video-surface" id="videoSurface">
+            <video id="video" autoplay playsinline muted aria-label="Camera feed"></video>
+            <canvas id="overlay" aria-label="Live tracking boxes"></canvas>
+            <div class="visual-grid" aria-hidden="true"></div>
+            <div class="view-top-left overlay-text"><span class="rect-indicator" id="recordDot"></span> <span id="feedMode">STANDBY</span><span class="view-info" id="resText">-- x --</span></div>
+            <div class="view-top-right overlay-text"><span id="liveTime">00:00:00</span> / CAM-01</div>
+            <div class="view-side-ticks" aria-hidden="true"></div>
+            <div class="view-bottom-left overlay-text" id="bottomLeft">SOURCE WAITING</div>
+            <div class="view-bottom-right overlay-text" id="bottomRight">LOCAL / NOT STREAMED</div>
+          </div>
+          <div class="empty-state" id="emptyState">
+            <div class="sight-icon"><i></i><b></b></div>
+            <div class="empty-title">CAMERA OFFLINE</div>
+            <p>Start your camera to detect faces and moving objects.</p>
+            <button class="button primary big" type="button" id="emptyStartBtn">ENABLE CAMERA ACCESS</button>
+            <div class="empty-privacy">PERMISSION REQUIRED · HTTPS OR LOCALHOST</div>
+          </div>
+          <div class="feed-error" id="errorBox" role="alert" hidden></div>
+        </section>
+        <div class="toolbar">
+          <button class="tool-btn" type="button" id="snapshotBtn" disabled><span class="tool-glyph">▣</span> SNAPSHOT</button>
+          <button class="tool-btn record-btn" type="button" id="recordBtn" disabled><span class="circle-glyph"></span> <span id="recordLabel">RECORD</span></button>
+          <button class="tool-btn" type="button" id="fullscreenBtn"><span class="tool-glyph">⛶</span> FULLSCREEN</button>
+          <button class="tool-btn" type="button" id="clearBtn"><span class="tool-glyph">×</span> CLEAR TRACKS</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span>FACE TRACKS</span><strong id="faceCount">00</strong><small class="green">FACE AI</small></div>
+          <div class="metric"><span>MOTION TRACKS</span><strong id="motionCount">00</strong><small class="amber">LIVE MOTION</small></div>
+          <div class="metric"><span>PREVIEW RATE</span><strong id="fpsCount">--</strong><small>FPS</small></div>
+          <div class="metric"><span>CAMERA</span><strong id="cameraStatus">OFF</strong><small>INPUT STATUS</small></div>
+        </div>
+        <div class="notice"><span class="notice-square"></span><span id="systemMessage">System idle. Camera and AI processing occur on this device; tracking IDs are temporary.</span></div>
+      </main>
+
+      <aside class="panel intel-panel">
+        <div class="section-bar"><span>02 / OBJECT REGISTER</span><span id="targetTotal">00</span></div>
+        <div class="intel-intro"><span>DETECTED TRACKS</span><span class="live-small">LIVE UPDATE</span></div>
+        <div class="track-list" id="trackList"><div class="list-empty">NO ACTIVE TRACKS<span>Start camera to begin tracking</span></div></div>
+        <div class="intel-divider"></div>
+        <div class="section-bar lower"><span>03 / EVENT LOG</span><button id="clearLogBtn" type="button" class="text-button">CLEAR</button></div>
+        <div class="log-list" id="logList" aria-live="polite"><div class="log-line muted">[--:--:--] SYSTEM READY</div></div>
+        <div class="intel-info"><span class="privacy-dot"></span> TEMPORARY IDS · NO FACE RECOGNITION</div>
+      </aside>
+    </div>
+    <footer class="footer"><span>VISION SENTINEL / SIMULATED TACTICAL DISPLAY</span><span>TRACKING IS APPROXIMATE. KEEP CAMERA STILL FOR BEST MOTION RESULTS.</span></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

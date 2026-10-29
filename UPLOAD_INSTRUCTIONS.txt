@@ -1,0 +1,19 @@
+IMPORTANT: ZIP FIX FOR RENDER ENOENT PACKAGE.JSON
+
+Extract ZIP. Go INSIDE extracted folder. Select all contents.
+Upload ALL CONTENTS into GitHub repository TOP LEVEL (root).
+Do not upload the ZIP or the enclosing folder.
+
+AT GITHUB TOP LEVEL, package.json MUST be next to index.html.
+
+RENDER WEB SERVICE:
+Root Directory: [blank]
+Build: npm install
+Start: npm start
+
+RENDER STATIC SITE:
+Root Directory: [blank]
+Build: npm run build
+Publish: dist
+
+If you still see ENOENT for /opt/render/project/src/package.json, your GitHub repository's current branch doesn't have package.json at its root, or Render's Root Directory is not blank.
